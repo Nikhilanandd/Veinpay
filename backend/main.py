@@ -5,103 +5,78 @@ import cv2
 
 from backend.utils.preprocess import preprocess_image
 from backend.utils.extract_vein import extract_vein_pattern
-from backend.utils.signature import generate_signature, compare_signatures
-from backend.db.database import save_user_signature, get_user_signature
-
+from backend.utils.mobilenet import mobilenet_embedding
+from backend.utils.signature import cosine_similarity
+from backend.db.database import save_user_embedding, get_user_embedding
 
 app = FastAPI()
 
-# -----------------------------
-# CORS for React Frontend
-# -----------------------------
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # Allow all origins for development
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# -----------------------------
-# Health Check
-# -----------------------------
 @app.get("/ping")
 async def ping():
-    return {"status": "Backend is running"}
+    return {"status": "Backend running"}
 
-
-# -----------------------------
-# REGISTER USER (Step 1)
-# -----------------------------
+# ----------------------------
+# Register User
+# ----------------------------
 @app.post("/register")
 async def register(user_id: str, file: UploadFile = File(...)):
-    """
-    Receives palm/hand image → preprocess → extract vein → generate signature → save to DB
-    """
-
-    # Load image bytes
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    if img is None:
-        return {"error": "Invalid image uploaded"}
-
-    # Preprocess
     pre_img = preprocess_image(img)
-
-    # Extract vein pattern
     skeleton, gabor_img, thresh_img = extract_vein_pattern(pre_img)
 
-    # Generate signature
-    signature = generate_signature(skeleton)
+    # Extract MobileNet embedding
+    embedding = mobilenet_embedding(skeleton)
+    embedding_list = embedding.tolist()
 
-    # Save to DB
-    save_user_signature(user_id, signature)
+    # Save in DB
+    save_user_embedding(user_id, embedding_list)
 
     return {
-        "status": "Registration Successful",
+        "status": "Registered",
         "user_id": user_id,
-        "signature_generated": True
+        "embedding_size": len(embedding_list)
     }
 
-
-# -----------------------------
-# MATCH USER (Step 2)
-# -----------------------------
+# ----------------------------
+# Match User
+# ----------------------------
 @app.post("/match")
 async def match(user_id: str, file: UploadFile = File(...)):
-    """
-    Receives new palm scan → extract signature → compare with stored signature
-    """
-
-    # Load uploaded image
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    if img is None:
-        return {"error": "Invalid image uploaded"}
-
-    # Preprocess
     pre_img = preprocess_image(img)
-
-    # Extract vein pattern
     skeleton, gabor_img, thresh_img = extract_vein_pattern(pre_img)
 
-    # Generate signature from new scan
-    new_signature = generate_signature(skeleton)
+    new_emb = mobilenet_embedding(skeleton)
 
-    # Get stored signature
-    stored_signature = get_user_signature(user_id)
+    stored_emb = get_user_embedding(user_id)
 
-    if not stored_signature:
+    if stored_emb is None:
         return {"match": False, "error": "User not found"}
 
-    # Compare
-    match_result = compare_signatures(new_signature, stored_signature)
+    stored_emb = np.array(stored_emb, dtype=np.float32)
+
+    score = cosine_similarity(new_emb, stored_emb)
+
+    # Fix numpy serialization issue
+    match_bool = bool(float(score) > 0.90)
 
     return {
         "user_id": user_id,
-        "match": match_result
+        "score": float(score),
+        "match": match_bool
     }

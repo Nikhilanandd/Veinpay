@@ -1,32 +1,12 @@
-import cv2
-import hashlib
 import numpy as np
 from numpy.linalg import norm
 
-# ---------------------------------------------
-# Signature Generation
-# ---------------------------------------------
-def generate_signature(skeleton_img):
+def cosine_similarity(a, b):
     """
-    Input: 255-based skeleton image
-    Output: SHA256 hash (string)
+    Cosine similarity between 2 embedding vectors.
+    Output: value between -1 and 1.
     """
+    a = np.array(a)
+    b = np.array(b)
 
-    # Resize for consistency
-    resized = cv2.resize(skeleton_img, (128, 128))  
-    flat = resized.flatten().tobytes()
-
-    # Return hash as unique biometric signature
-    signature = hashlib.sha256(flat).hexdigest()
-    return signature
-
-
-# ---------------------------------------------
-# Signature Comparison (Exact or Hash Similarity)
-# ---------------------------------------------
-def compare_signatures(sig1, sig2):
-    """
-    Compares two SHA256 signatures.
-    If they match exactly → 100% identical skeleton pattern.
-    """
-    return sig1 == sig2
+    return np.dot(a, b) / (norm(a) * norm(b))

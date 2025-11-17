@@ -29,24 +29,16 @@ except ConnectionFailure as e:
     raise e
 
 
-# ----------------------------------------
-# Save / Update User Signature
-# ----------------------------------------
-def save_user_signature(user_id: str, signature: str):
+def save_user_embedding(user_id: str, embedding):
     users_collection.update_one(
         {"user_id": user_id},
-        {"$set": {"signature": signature}},
+        {"$set": {"embedding": embedding}},
         upsert=True
     )
-    print(f"[MongoDB] Signature stored for user: {user_id}")
+    print(f"[MongoDB] Embedding stored for user: {user_id}")
 
-
-# ----------------------------------------
-# Get User Signature
-# ----------------------------------------
-def get_user_signature(user_id: str):
+def get_user_embedding(user_id: str):
     user = users_collection.find_one({"user_id": user_id})
     if user:
-        return user.get("signature")
-    print(f"[MongoDB] No signature found for user: {user_id}")
+        return user.get("embedding")
     return None
