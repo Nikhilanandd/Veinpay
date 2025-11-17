@@ -1,22 +1,27 @@
+import os
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from dotenv import load_dotenv
 
 # ----------------------------------------
-# HARDCODE YOUR MONGO ATLAS URI HERE
+# Load environment variables from .env
 # ----------------------------------------
-# Replace the string below with your actual Atlas connection URI
+load_dotenv()
 
-MONGO_URI = "mongodb+srv://nikhilanand:060O47HDut2eWPEa@veinpay.xw80fkf.mongodb.net"
+MONGO_URI = os.getenv("MONGO_URI")
+
 if not MONGO_URI:
-    raise Exception("MONGO_URI is empty! Add your Atlas connection string.")
+    raise Exception(
+        "MONGO_URI is not set. Please add it to your .env file."
+    )
 
 # ----------------------------------------
 # Connect to MongoDB Atlas
 # ----------------------------------------
 try:
     client = MongoClient(MONGO_URI)
-    db = client["veinpay_db"]             # Database name
-    users_collection = db["users"]        # Collection
+    db = client["veinpay_db"]     
+    users_collection = db["users"]
     print("[MongoDB Atlas] Connected successfully!")
 
 except ConnectionFailure as e:
@@ -28,9 +33,6 @@ except ConnectionFailure as e:
 # Save / Update User Signature
 # ----------------------------------------
 def save_user_signature(user_id: str, signature: str):
-    """
-    Stores or updates the user's biometric signature.
-    """
     users_collection.update_one(
         {"user_id": user_id},
         {"$set": {"signature": signature}},
@@ -43,9 +45,6 @@ def save_user_signature(user_id: str, signature: str):
 # Get User Signature
 # ----------------------------------------
 def get_user_signature(user_id: str):
-    """
-    Retrieves stored signature. Returns None if not found.
-    """
     user = users_collection.find_one({"user_id": user_id})
     if user:
         return user.get("signature")

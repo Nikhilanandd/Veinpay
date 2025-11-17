@@ -10,6 +10,7 @@ dependencies = [
     "opencv-python>=4.11.0.86",
     "pillow>=12.0.0",
     "pymongo>=4.15.4",
+    "python-dotenv>=1.2.1",
     "python-multipart>=0.0.20",
     "scikit-image>=0.25.2",
     "tensorflow>=2.20.0",
