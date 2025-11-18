@@ -256,8 +256,8 @@ This project is licensed under the **GNU AFFERO GENERAL PUBLIC LICENSE**.
 
 If you like this project, consider starring the repository:
 
-```
+
 ⭐️ Star this repo to show your support!
-```
+
 
 
