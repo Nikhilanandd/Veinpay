@@ -248,7 +248,7 @@ GET /
 
 ## 📜 **License**
 
-This project is licensed under the **GNU AFFERO GENERAL PUBLIC LICENSE**.
+This project is licensed under the [**GNU AFFERO GENERAL PUBLIC LICENSE**.](https://github.com/Nikhilanandd/Veinpay/blob/main/LICENSE)
 
 ---
 
