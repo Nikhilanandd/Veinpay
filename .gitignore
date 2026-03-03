@@ -15,6 +15,12 @@ env/
 # Environment files
 .env
 
+# Environment (never commit secrets)
+.env
+
+# Lock files (optional - some teams commit these, some don't)
+# uv.lock
+
 # IDE
 .vscode/
 .idea/
