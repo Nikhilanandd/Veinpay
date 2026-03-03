@@ -1,263 +1,435 @@
+# VeinPay — Biometric Vein Pattern Authentication System
 
-# **VeinPay — Contactless Palm Vein Authentication System**
-
-VeinPay is a next-generation biometric authentication platform that replaces physical cards, cash, smartphones, and PIN-based systems with **AI-powered contactless palm-vein recognition**.  
-Using advanced image preprocessing, deep neural embeddings, and secure database storage, VeinPay enables **fast, private, and fraud-proof identity verification**.
-
----
-
-## 🚀 **Key Features**
-
-- **Contactless Palm Vein Authentication**  
-  Uses NIR/RGB images to extract unique sub-dermal vein patterns.
-
-- **MobileNetV2 Neural Embeddings**  
-  Deep learning–based feature extraction ensures high accuracy and reliability.
-
-- **Advanced Preprocessing Pipeline**  
-  Includes contrast enhancement, ROI selection, normalization, and vein map extraction.
-
-- **FastAPI Backend**  
-  High-performance API for registration, matching, and storage.
-
-- **MongoDB (Local or Cloud) Integration**  
-  Secure storage of vector embeddings for user identification.
-
-- **Modern Streamlit Frontend**  
-  Includes custom dark UI, glass cards, gradient buttons, animations, and camera input.
-
-- **Modular & Extensible Architecture**  
-  Easily extendable for edge devices, NIR hardware, or FPGA acceleration.
+> ** Prototype / Proof of Concept**
+> This is a working prototype demonstrating vein-based biometric authentication using AI/ML.
+> It is **not production-deployed** yet but serves as a foundation for building a full-scale
+> contactless biometric payment and identity verification platform.
 
 ---
 
-##  **How VeinPay Works**
+##  The Vision
 
-### 1️⃣ Image Acquisition  
-User captures a palm image using:
-- RGB camera (prototype)
-- NIR camera (hardware-ready)
+**What if you could pay with just your hand?**
 
-### 2️⃣ Preprocessing  
-Pipeline includes:
-- ROI extraction  
-- Noise reduction  
-- Level-set filtering  
-- Histogram equalization  
-- Vein map enhancement  
+VeinPay explores a future where **vein patterns in your hand replace cards, PINs, and passwords** for secure payments and authentication. Unlike fingerprints or facial recognition:
 
-### 3️⃣ Feature Extraction  
-MobileNetV2 generates a **1280-dimensional embedding vector**.
+-  **Vein patterns are internal** — they can't be photographed, copied, or stolen
+-  **Contactless** — no touching shared surfaces
+-  **Unique to every individual** — even identical twins have different vein patterns
+-  **Liveness detection built-in** — veins are only visible with blood flow (can't be faked from a dead hand)
 
-### 4️⃣ Storage  
-Embeddings stored in MongoDB with a user ID.
+### Future Scope
 
-### 5️⃣ Authentication  
-Cosine similarity between new & stored embeddings →  
-If score ≥ threshold → **Match**
+This prototype lays the groundwork for:
+
+| Feature | Description |
+|---------|-------------|
+| **Contactless Payments** | Pay at stores by scanning your palm — no wallet, no phone needed |
+| **Bank Authentication** | Replace OTPs and PINs with vein-based identity for banking apps |
+| **ATM Withdrawals** | Authenticate at ATMs using your hand instead of a card |
+| **Secure Access Control** | Office/building entry using vein patterns |
+| **Healthcare ID** | Patient identification that can never be lost or forged |
+| **Government ID** | Aadhaar/national ID verification with unforgeable biometrics |
+| **Multi-factor Auth** | Combine vein scan with other factors for ultra-secure systems |
 
 ---
 
-##  **System Architecture**
+## 🏗️ Architecture
 
 ```
-
-```
-         ┌──────────────────────┐
-         │      Streamlit UI    │
-         │  (Register / Match)  │
-         └───────────┬──────────┘
-                     │
-                     ▼
-         ┌──────────────────────┐
-         │      FastAPI         │
-         │ (Preprocess + ML)    │
-         └───────────┬──────────┘
-                     │
-                     ▼
-         ┌──────────────────────┐
-         │     MobileNetV2      │
-         │   Feature Embedding  │
-         └───────────┬──────────┘
-                     │
-                     ▼
-         ┌──────────────────────┐
-         │       MongoDB        │
-         │ (User + Embeddings)  │
-         └──────────────────────┘
+React Frontend (Vite + TailwindCSS)
+        ↓ (Axios REST API)
+FastAPI Backend (Modular)
+        ↓
+CV + ML Processing Pipeline
+        ↓
+MongoDB
 ```
 
+### How It Works
+
+```
+User's Hand Image
+        ↓
+  Preprocessing (Grayscale → Resize → Histogram Equalization)
+        ↓
+  Vein Enhancement (Gabor Filters → Morphological Skeletonization)
+        ↓
+  Feature Extraction (MobileNetV2 → 1280-dimensional embedding)
+        ↓
+  Registration: Store embedding in MongoDB
+        or
+  Authentication: Cosine similarity matching against stored embeddings
+        ↓
+  Result: Authenticated ✅ / Rejected ❌ with confidence score
 ```
 
 ---
 
-##  **Tech Stack**
+## ✨ Key Features
 
-### **Backend**
-- FastAPI  
-- Python 3.13  
-- OpenCV  
-- scikit-image  
-- TensorFlow (MobileNetV2)  
-- NumPy  
-
-### **Database**
-- MongoDB Atlas (Cloud)  
-- MongoDB Local (Docker)  
-
-### **Frontend**
-- Streamlit  
-- Custom CSS  
-- Camera input  
+- **AI-Powered Vein Recognition** — MobileNetV2 deep learning for feature extraction
+- **Advanced CV Pipeline** — Histogram equalization → Gabor filters → Morphological skeletonization
+- **React Frontend** — Professional UI with TailwindCSS, image upload/camera capture
+- **Analytics Dashboard** — Real-time stats with Recharts (pie charts, bar charts, success rates)
+- **FastAPI Backend** — Modular architecture with structured JSON responses
+- **MongoDB Storage** — Only embedding vectors stored (never raw images)
+- **Docker Ready** — Full docker-compose setup for one-command deployment
 
 ---
 
-## 📁 **Project Structure**
+## 📁 Project Structure
 
 ```
-
 VeinPay/
-│
-├── backend/
-│   ├── main.py
+├── app/                          # Backend (FastAPI)
+│   ├── main.py                   # Application entry point + lifespan
+│   ├── core/
+│   │   ├── config.py             # Environment-based settings (pydantic-settings)
+│   │   └── logging_config.py     # Structured logging setup
+│   ├── routes/
+│   │   ├── __init__.py           # Router exports
+│   │   ├── auth.py               # POST /register, POST /authenticate
+│   │   ├── analytics.py          # GET /analytics
+│   │   └── health.py             # GET /health
+│   ├── services/
+│   │   ├── registration.py       # Registration business logic
+│   │   ├── authentication.py     # Authentication + similarity matching
+│   │   └── analytics.py          # Analytics aggregation
 │   ├── utils/
-│   │   ├── mobilenet.py
-│   │   ├── preprocess.py
-│   │   └── extract_vein.py
+│   │   ├── preprocess.py         # Image preprocessing pipeline
+│   │   ├── extract_vein.py       # Gabor + skeletonization
+│   │   ├── mobilenet.py          # MobileNetV2 singleton (lazy-loaded)
+│   │   ├── similarity.py         # Cosine similarity (numpy-only)
+│   │   └── signature.py          # Skeleton signature extraction
 │   └── db/
-│       └── database.py
-│
-├── streamlit_app/
-│   ├── app.py
-│   ├── register_page.py
-│   ├── match_page.py
-│   ├── utils.py
-│   ├── config.py
-│   └── styles.css
-│
+│       └── database.py           # MongoDB connection + operations
+├── frontend/                     # Frontend (React + Vite)
+│   ├── src/
+│   │   ├── App.jsx               # Router setup
+│   │   ├── main.jsx              # Entry point
+│   │   ├── index.css             # TailwindCSS imports
+│   │   ├── components/           # Navbar, Footer, ImageCapture, etc.
+│   │   ├── pages/                # Landing, Register, Authenticate, Analytics
+│   │   ├── services/             # Axios API client
+│   │   └── hooks/                # Custom React hooks
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.js
+├── tests/
+│   └── test_similarity.py        # Unit tests for cosine similarity
+├── pyproject.toml                # Python dependencies (uv)
+├── docker-compose.yml            # Full stack orchestration
+├── Dockerfile.backend            # Backend container
+├── Dockerfile.frontend           # Frontend container (multi-stage + nginx)
+├── nginx.conf                    # Nginx config for frontend
+├── .env                          # Environment variables (local)
 └── README.md
-
-````
+```
 
 ---
 
-##  **Setup Instructions**
+## 🚀 Quick Start (Local Development)
 
-### **1. Clone the Repository**
+### Prerequisites
+
+| Tool | Version | Install |
+|------|---------|---------|
+| Python | 3.10+ | `sudo apt install python3` |
+| uv | latest | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Node.js | 18+ | `sudo apt install nodejs npm` |
+| MongoDB | 7.0+ | See below |
+
+### Step 1: Clone the Repository
+
 ```bash
-git clone https://github.com/nikhilanandd/Veinpay.git
+git clone https://github.com/yourusername/VeinPay.git
 cd VeinPay
-````
-
-### **2. Create a Virtual Environment**
-
-```bash
-uv venv
-source .venv/bin/activate
 ```
 
-### **3. Install Dependencies**
+### Step 2: Start MongoDB
+
+**Option A: Using Docker (recommended)**
+```bash
+docker run -d \
+  --name veinpay-mongo \
+  -p 27017:27017 \
+  -v veinpay_mongo_data:/data/db \
+  mongo:7 --noauth
+```
+
+**Option B: Local MongoDB**
+```bash
+sudo systemctl start mongod
+```
+
+Verify it's running:
+```bash
+# Docker
+docker exec veinpay-mongo mongosh --eval "db.runCommand({ ping: 1 })"
+
+# Local
+mongosh --eval "db.runCommand({ ping: 1 })"
+```
+
+### Step 3: Setup Environment
 
 ```bash
+# Create .env file (edit values as needed)
+cat > .env << 'EOF'
+MONGODB_URL=mongodb://localhost:27017
+DATABASE_NAME=veinpay
+SIMILARITY_THRESHOLD=0.85
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+LOG_LEVEL=INFO
+SECRET_KEY=change-me-in-production
+APP_VERSION=1.0.0
+EOF
+```
+
+### Step 4: Install & Run Backend
+
+```bash
+# Install Python dependencies
 uv sync
+
+# Start the backend
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### **4. Setup MongoDB**
+Verify: `curl http://localhost:8000/health`
 
-#### **Option A — Local (Docker)**
+### Step 5: Install & Run Frontend
+
+Open a **new terminal**:
 
 ```bash
-docker run -d -p 27017:27017 --name mongodb mongo:latest
+cd frontend
+npm install
+npm run dev
 ```
 
-#### **Option B — Cloud**
+### Step 6: Open in Browser
 
-Add your connection string in `.env`:
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| Swagger Docs | http://localhost:8000/docs |
 
-```
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/
-```
+---
 
-### **5. Run the Backend**
+## 🐳 Docker Deployment
+
+### Run Everything with Docker Compose
 
 ```bash
-uvicorn backend.main:app --reload
+# Build and start all services (MongoDB + Backend + Frontend)
+docker-compose up --build
+
+# Run in background
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Stop everything
+docker-compose down
+
+# Stop and remove volumes (deletes database)
+docker-compose down -v
 ```
 
-### **6. Run the Frontend**
+| Service | URL | Container |
+|---------|-----|-----------|
+| Frontend | http://localhost:3000 | `veinpay-frontend` |
+| Backend API | http://localhost:8000 | `veinpay-backend` |
+| Swagger Docs | http://localhost:8000/docs | `veinpay-backend` |
+| MongoDB | localhost:27017 | `veinpay-mongo` |
+
+### Build Individual Containers
 
 ```bash
-cd streamlit_app
-streamlit run app.py
+# Backend only
+docker build -f Dockerfile.backend -t veinpay-backend .
+docker run -p 8000:8000 --env-file .env veinpay-backend
+
+# Frontend only
+docker build -f Dockerfile.frontend -t veinpay-frontend .
+docker run -p 3000:80 veinpay-frontend
 ```
 
 ---
 
-## 🧪 **API Endpoints**
+## 📡 API Endpoints
 
-### **Register User**
-
-```
-POST /register?user_id=<id>
-```
-
-### **Match User**
-
-```
-POST /match?user_id=<id>
+All responses follow a standardized format:
+```json
+{
+  "status": "success" | "error",
+  "message": "Description",
+  "data": {}
+}
 ```
 
-### **Health Check**
+| Method | Endpoint | Description | Input |
+|--------|----------|-------------|-------|
+| `GET` | `/health` | Health check | — |
+| `POST` | `/register` | Register a user | `user_id` + `image` (multipart) |
+| `POST` | `/authenticate` | Authenticate a user | `image` (multipart) |
+| `GET` | `/analytics` | System statistics | — |
 
+### POST /register
+```bash
+curl -X POST http://localhost:8000/register \
+  -F "user_id=john_doe" \
+  -F "image=@hand_photo.jpg"
 ```
-GET /
+Response:
+```json
+{
+  "status": "success",
+  "message": "User 'john_doe' registered successfully",
+  "data": { "user_id": "john_doe" }
+}
+```
+
+### POST /authenticate
+```bash
+curl -X POST http://localhost:8000/authenticate \
+  -F "image=@hand_photo.jpg"
+```
+Response:
+```json
+{
+  "status": "success",
+  "message": "Authenticated successfully",
+  "data": {
+    "authenticated": true,
+    "similarity_score": 0.9432,
+    "matched_user": "john_doe"
+  }
+}
+```
+
+### GET /analytics
+```bash
+curl http://localhost:8000/analytics
+```
+Response:
+```json
+{
+  "status": "success",
+  "message": "Analytics retrieved successfully",
+  "data": {
+    "total_users": 5,
+    "total_authentications": 23,
+    "successful_authentications": 19,
+    "failed_authentications": 4,
+    "success_rate": 82.61,
+    "recent_logs": [...]
+  }
+}
 ```
 
 ---
 
-## 🔒 **Security Advantages**
+## 🧠 ML/CV Pipeline
 
-| Risk in Existing Systems             | How VeinPay Solves It                              |
-| ------------------------------------ | -------------------------------------------------- |
-| Cards/phones can be stolen or cloned | Internal sub-dermal vein patterns cannot be forged |
-| PIN theft & skimming attacks         | No PINs or physical devices needed                 |
-| Spoofing fingerprints                | Requires live blood flow                           |
-| Privacy concerns                     | No raw images stored — embeddings only             |
-| Dependence on physical tokens        | Authentication is inherent to the user             |
-
----
-
-##  **Future Scope**
-
-* Custom NIR palm-vein sensor hardware
-* FPGA/TPU acceleration
-* Zero-knowledge biometric verification
-* Merchant SDK (web, mobile, kiosk)
-* Federated learning for privacy-preserving training
-* Blockchain-based identity ledger
-* Multi-modal biometrics (vein + gait + voice)
+| Stage | Technique | Details |
+|-------|-----------|---------|
+| 1. Preprocessing | Grayscale → Resize → CLAHE | Normalizes input to 224×224 |
+| 2. Vein Enhancement | Gabor Filters (σ=8, λ=12) | Highlights vein structures |
+| 3. Skeletonization | Morphological thinning | Extracts clean vein topology |
+| 4. Feature Extraction | MobileNetV2 (ImageNet) | 1280-dimensional embedding vector |
+| 5. Matching | Cosine Similarity | Threshold-based (default: 0.85) |
 
 ---
 
-## 🤝 **Contributors**
+## ⚙️ Configuration
 
-* **Nikhil Anand** — Lead Developer & Architect
-* Open for research & collaboration
+Environment variables in `.env`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MONGODB_URL` | `mongodb://localhost:27017` | MongoDB connection string |
+| `DATABASE_NAME` | `veinpay` | Database name |
+| `SIMILARITY_THRESHOLD` | `0.85` | Cosine similarity threshold for auth |
+| `CORS_ORIGINS` | `http://localhost:5173,...` | Allowed CORS origins |
+| `LOG_LEVEL` | `INFO` | Logging level |
+| `SECRET_KEY` | — | Secret key for future JWT auth |
+| `APP_VERSION` | `1.0.0` | Displayed in health check |
 
 ---
 
-## 📜 **License**
+## 🔒 Security
 
-This project is licensed under the **GNU AFFERO GENERAL PUBLIC LICENSE**.
+| Feature | Status |
+|---------|--------|
+| Raw images never stored | ✅ Only embeddings |
+| File type validation | ✅ Image MIME types only |
+| File size limit | ✅ 10MB max |
+| Input sanitization | ✅ Pydantic validation |
+| CORS restrictions | ✅ Configured origins |
+| Structured error responses | ✅ No stack traces leaked |
+| JWT auth for admin routes | 🔜 Planned |
+| HTTPS | 🔜 For production deployment |
+| Rate limiting | 🔜 Planned |
 
 ---
 
-## ⭐ **Support the Project**
+## 🧪 Running Tests
 
-If you like this project, consider starring the repository:
+```bash
+uv run pytest -v
+```
 
+---
 
-⭐️ Star this repo to show your support!
+## 🛣️ Roadmap
+
+- [x] Core vein pattern recognition pipeline
+- [x] User registration and authentication
+- [x] React frontend with camera capture
+- [x] Analytics dashboard
+- [x] Docker deployment
+- [ ] NIR (Near-Infrared) camera support for real vein imaging
+- [ ] JWT authentication for admin endpoints
+- [ ] Payment gateway integration (Razorpay / Stripe)
+- [ ] Multi-hand enrollment (left + right)
+- [ ] Liveness detection (anti-spoofing)
+- [ ] Encryption of stored embeddings
+- [ ] Kubernetes deployment config
+- [ ] Mobile app (React Native)
+- [ ] Hardware integration (dedicated vein scanner)
+
+---
+
+## 🤝 Contributing
+
+This is a prototype/research project. Contributions, ideas, and feedback are welcome.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is for educational and research purposes. See [LICENSE](LICENSE) for details.
+
+---
+
+## 👤 Author
+
+**Nikhil** — Built as a prototype for biometric payment authentication research.
+
+---
+
+> *"The most secure password is the one you don't have to remember — it's already inside you."*
 
 
 
